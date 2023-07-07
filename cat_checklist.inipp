@@ -1,0 +1,9 @@
+[Main]
+
+[Info]
+name = "project-name"
+version = "0.0.0"
+
+[Download]
+dependencies = ["https://raw.githubusercontent.com/labricecat/kittenlexer/main/"]
+
