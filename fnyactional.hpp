@@ -31,6 +31,7 @@ struct argument {
     type my_type;
 };
 
+struct fncall;
 struct fn {
     enum {
         NATIVE,
@@ -39,8 +40,16 @@ struct fn {
 
     std::string name;
     std::vector<argument> args;
-    std::string code;
+
+    fncall* code = nullptr;
     std::function<value(const std::vector<value>&)> native;
+
+    inline std::string stringify() const;
+};
+
+struct fncall {
+    fn function;
+    std::vector<value> args;
 
     inline std::string stringify() const;
 };
@@ -52,13 +61,14 @@ struct value {
     long double number = 0.0;
     std::vector<value> list;
     fn function;
+    fncall call;
 
     value(const std::string& str):          str(str),           my_type(type::STRING)   {}
     value(const long double& number):       number(number),     my_type(type::NUMBER)   {}
     value(const std::vector<value>& list):  list(list),         my_type(type::LIST)     {}
     value(const fn& function):              function(function), my_type(type::FUNCTION) {}
 
-    std::string stringify() {
+    std::string stringify() const {
         switch(my_type) {
             case type::NUMBER:
                 return std::to_string(number);
@@ -88,10 +98,21 @@ inline std::string fn::stringify() const {
     if(r != name + "(") r.pop_back();
     r += ") => ";
     if(type == NATIVE) return r + "<native>";
-    return r + code;
+    if(!code) return r;
+    return r + code->stringify();
 }
 
-#define nfn(x,y,...) {x,fn{ .type = fn::NATIVE, .name = x, .args = {}, .code = "", .native = [](const std::vector<value>& args)->value { __VA_ARGS__; }}}
+inline std::string fncall::stringify() const {
+    std::string str = function.stringify() + "(";
+    for(auto& i : args) {
+        str += i.stringify() + ",";
+    }
+    if(!args.empty()) 
+        str.pop_back();
+    return str + ")";
+}
+
+#define nfn(x,y,...) {x,fn{ .type = fn::NATIVE, .name = x, .args = {}, .native = [](const std::vector<value>& args)->value { __VA_ARGS__; }}}
 #define fnargs(...) std::vector<argument>({__VA_ARGS__})
 #define fnarg(x,y) argument({ .name = x, .my_type = type::y })
 static const std::unordered_map<std::string,fn> global_fns = {
@@ -131,6 +152,22 @@ std::vector<fn> evaluate(const std::string& source) {
         else lines.back().fn += source[i];
     }
 
+    static KittenLexer fn_lexer = KittenLexer()
+        .add_ignore(' ')
+        .add_ignore(' ')
+        .add_ignore('\n')
+        .erase_empty()
+        .add_capsule('(',')')
+        .ignore_backslash_opts();
+    static KittenLexer body_lexer = KittenLexer()
+        .add_ignore(' ')
+        .add_ignore(' ')
+        .add_ignore('\n')
+        .erase_empty()
+        .add_capsule('(',')')
+        .ignore_backslash_opts();
+    
+    auto fndecl = fn_lexer.lex("");
 }
 
 value run_fn(fn function, std::vector<value> args) {
