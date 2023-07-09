@@ -45,6 +45,7 @@ struct fn {
 
     std::string code;
     std::function<value(const std::vector<value>&)> native;
+    std::unordered_map<std::string,value> predef;
 
     inline std::string stringify() const;
 };
@@ -255,6 +256,7 @@ inline std::vector<value> parse_args(std::string source, std::unordered_map<std:
     for(size_t i = 0; i < lexed.size(); i += 2) {
         if(!lexed[i].str && lexed[i].src.front() == '(') {
             fn fnc;
+            fnc.predef = params;
             fnc.args = parse_params(lexed[i].src);
             if(i+1 < lexed.size() && !lexed[i+1].str && lexed[i+1].src.front() == '{') {
                 fnc.code = lexed[i+1].src.substr(1,lexed[i+1].src.size()-2);
@@ -346,6 +348,7 @@ value eval_code(const std::string& code, std::unordered_map<std::string,value> v
     else if(lexed.size() == 2) {
         if(!lexed[0].str && lexed[0].src.front() == '(') {
             fn fnc;
+            fnc.predef = vars;
             fnc.args = parse_params(lexed[0].src);
             if(!lexed[1].str && lexed[1].src.front() == '{') {
                 fnc.code = lexed[1].src.substr(1,lexed[1].src.size()-2);
@@ -414,7 +417,7 @@ inline value call(fn function, const std::vector<value>& args = {}) {
     if(function.type == fn::NATIVE)
         return function.native(args);
     else {
-        std::unordered_map<std::string,value> vars;
+        std::unordered_map<std::string,value> vars = function.predef;
         for(size_t i = 0; i < function.args.size(); ++i)
             vars[function.args[i]] = args[i];
 
