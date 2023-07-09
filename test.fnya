@@ -1,0 +1,9 @@
+identity(x) => x
+add(a,b) => sub(a,sub(0,b))
+mul(a,b) => when b then add(a,mul(a,sub(b,1))) else 0
+empty(x) => equal(x,[])
+head(x) => when empty(pop(x)) then tail(x) else head(pop(x))
+concat(x,y) => when empty(pop(y)) then push(x,tail(y)) else concat(concat(x,pop(y)),[tail(y)])
+map(x,f) => when empty(pop(x)) then [f(tail(x))] else concat([f(tail(x))],map(pop(x),f))
+
+main => map([1,2,3],dbg)
