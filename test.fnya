@@ -1,13 +1,15 @@
 identity(x) => x
 call(f) => f()
+
 add(a,b) => sub(a,sub(0,b))
 mul(a,b) => when b then add(a,mul(a,sub(b,1))) else 0
+
 empty(x) => equal(x,[])
-head(x) => when empty(pop(x)) then tail(x) else head(pop(x))
-concat(x,y) => when empty(pop(y)) then push(x,tail(y)) else concat(concat(x,pop(y)),[tail(y)])
-map(x,f) => when empty(pop(x)) then [f(tail(x))] else concat(map(pop(x),f),[f(tail(x))])
-reduce_impl(x,f,w) => when empty(pop(x)) then f(tail(x),w) else reduce_impl(pop(x),f,f(tail(x),w))
-reduce(x,f) => when empty(pop(x)) then x else reduce_impl(pop(x),f,tail(x))
+head(x) => when empty(pop(x)) then last(x) else head(pop(x))
+concat(x,y) => when empty(pop(y)) then push(x,last(y)) else concat(concat(x,pop(y)),[last(y)])
+map(x,f) => when empty(pop(x)) then [f(last(x))] else concat(map(pop(x),f),[f(last(x))])
+reduce_impl(x,f,w) => when empty(pop(x)) then f(last(x),w) else reduce_impl(pop(x),f,f(last(x),w))
+reduce(x,f) => when empty(pop(x)) then x else reduce_impl(pop(x),f,last(x))
+markov(x,f) => when empty(pop(x)) then [f(last(x))] else concat(markov(pop(x),f),[f(last(x))])
 
-
-main => reduce(map([1,2,3],(x){mul(x,2)}),(x,w){add(x,w)})
+main => markov([1,2,3],(x){add(x,2)})

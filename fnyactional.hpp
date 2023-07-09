@@ -156,7 +156,7 @@ static std::unordered_map<std::string,fn> global_fns = {
         cp.pop_back();
         return cp;
     }),
-    nfn("tail",fnargs(
+    nfn("last",fnargs(
         fnarg("lhs",LIST),
     ), {
         return args[0].list.back();
