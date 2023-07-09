@@ -1,6 +1,8 @@
 #ifndef FNYACTIONAL_HPP
 #define FNYACTIONAL_HPP
 
+#define FNYACTIONAL_VERSION "0.0.1"
+
 #include "catpkgs/kittenlexer/kittenlexer.hpp"
 
 #include <string>
