@@ -6,6 +6,7 @@ add(a,b) => sub(a,sub(0,b))
 mul(a,b) => when b then add(a,mul(a,sub(b,1))) else 0
 
 empty(x) => equal(x,[])
+size(x) => when empty(x) then 0 else add(size(pop(x)),1)
 head(x) => when empty(pop(x)) then last(x) else head(pop(x))
 tail(x) => when empty(pop(x)) then [] else concat(tail(pop(x)),[last(x)])
 concat(x,y) => when empty(pop(y)) then push(x,last(y)) else concat(concat(x,pop(y)),[last(y)])
@@ -14,5 +15,7 @@ reduce_impl(x,f,w) => when empty(pop(x)) then f(last(x),w) else reduce_impl(pop(
 reduce(x,f) => when empty(pop(x)) then x else reduce_impl(pop(x),f,last(x))
 markov(x,f) => when empty(pop(x)) then [f(last(x))] else concat(markov(pop(x),f),[f(last(x))])
 reverse(x) => when empty(pop(x)) then [last(x)] else concat([last(x)],reverse(pop(x)))
+at(i,x) => when i then at(sub(i,1),pop(x)) else last(x)
 
-main => tail([1,2,3])
+
+main => size([1,2,3,4,5])
