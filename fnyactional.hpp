@@ -246,13 +246,26 @@ inline std::vector<value> parse_args(std::string source, std::unordered_map<std:
         .add_ignore('\t')
         .add_capsule('(',')')
         .add_capsule('[',']')
+        .add_capsule('{','}')
         .ignore_backslash_opts()
         .erase_empty();
 
     std::vector<value> r;
     auto lexed = lexer.lex(source);
     for(size_t i = 0; i < lexed.size(); i += 2) {
-        if(i+1 < lexed.size() && lexed[i+1].src.front() == '(') {
+        if(!lexed[i].str && lexed[i].src.front() == '(') {
+            fn fnc;
+            fnc.args = parse_params(lexed[i].src);
+            if(i+1 < lexed.size() && !lexed[i+1].str && lexed[i+1].src.front() == '{') {
+                fnc.code = lexed[i+1].src.substr(1,lexed[i+1].src.size()-2);
+                fnc.type = fn::DEFINED;
+                fnc.name = "anon";
+                r.push_back(fnc);
+            }
+            else; // error
+            ++i;
+        }
+        else if(i+1 < lexed.size() && lexed[i+1].src.front() == '(') {
             if(params.count(lexed[i].src) != 0) 
                 r.push_back(call(params[lexed[i].src].function, parse_args(lexed[i+1].src,params)));
             else r.push_back(call(lexed[i].src, parse_args(lexed[i+1].src,params)));
@@ -320,6 +333,7 @@ value eval_code(const std::string& code, std::unordered_map<std::string,value> v
         .add_ignore('\n')
         .add_capsule('[',']')
         .add_capsule('(',')')
+        .add_capsule('{','}')
         .ignore_backslash_opts()
         .erase_empty();
     auto lexed = lexer.lex(code);
@@ -330,7 +344,18 @@ value eval_code(const std::string& code, std::unordered_map<std::string,value> v
         return get_value(lexed.front(),vars);
     }
     else if(lexed.size() == 2) {
-        if(vars.count(lexed.front().src) != 0)
+        if(!lexed[0].str && lexed[0].src.front() == '(') {
+            fn fnc;
+            fnc.args = parse_params(lexed[0].src);
+            if(!lexed[1].str && lexed[1].src.front() == '{') {
+                fnc.code = lexed[1].src.substr(1,lexed[1].src.size()-2);
+                fnc.type = fn::DEFINED;
+                fnc.name = "anon";
+                return fnc;
+            }
+            else; // error
+        }
+        else if(vars.count(lexed.front().src) != 0)
             return call(vars[lexed.front().src].function,parse_args(lexed[1].src,vars));
         else return call(get_fn(lexed.front().src),parse_args(lexed[1].src,vars));
     }
@@ -379,6 +404,7 @@ value eval_code(const std::string& code, std::unordered_map<std::string,value> v
             }
             else; // error
         }
+        
     }
     std::cout << "err, code:" << code << "\n";
     return 0;

@@ -1,4 +1,5 @@
 identity(x) => x
+call(f) => f()
 add(a,b) => sub(a,sub(0,b))
 mul(a,b) => when b then add(a,mul(a,sub(b,1))) else 0
 empty(x) => equal(x,[])
@@ -8,6 +9,5 @@ map(x,f) => when empty(pop(x)) then [f(tail(x))] else concat(map(pop(x),f),[f(ta
 reduce_impl(x,f,w) => when empty(pop(x)) then f(tail(x),w) else reduce_impl(pop(x),f,f(tail(x),w))
 reduce(x,f) => when empty(pop(x)) then x else reduce_impl(pop(x),f,tail(x))
 
-r_do(x,w) => add(x,w)
-m_do(x) => mul(x,2)
-main => reduce(map([1,2,3],m_do),r_do)
+
+main => reduce(map([1,2,3],(x){mul(x,2)}),(x,w){add(x,w)})
